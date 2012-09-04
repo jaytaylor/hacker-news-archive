@@ -1,0 +1,3 @@
+[submodule "python-inlineify-html"]
+	path = python-inlineify-html
+	url = git://github.com/jaytaylor/python-inlineify-html.git
