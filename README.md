@@ -1,7 +1,7 @@
-hackernews-snapshot
+hacker-news-archive
 ===================
 
-HackerNews SnapShot Archival System
+Hacker News Archive System
 
 == Requirements ==
 
@@ -11,3 +11,11 @@ HackerNews SnapShot Archival System
  git submodule init
  git submodule update
 
+
+== Setup ==
+
+ git clone git@github.com:jaytaylor/hacker-news-archive.git
+
+Add the schedule as a cron job:
+$ crontab -e
+ 0 * * * * /var/www/scala.sh/public_html/hackernews-archive/snapshot.sh
