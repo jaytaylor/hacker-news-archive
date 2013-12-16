@@ -1,16 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""d"""
+"""HackerNews models."""
 
-import re, subprocess
 from bs4 import BeautifulSoup
-
-integerRe = re.compile(r'''[^0-9]+''')
-
-def utf8(s):
-    """Easy str-to-utf8 utility function."""
-    return unicode(s).encode('utf-8')
+from .text import utf8, integerRe
 
 
 class ItemLog(object):
@@ -33,10 +27,10 @@ class Item(object):
         self.log = []
 
     def __str__(self):
-        return '<Item id={0} title="{1}" url={2}>'.format(self.id, self.title, self.url)
+        return '<Item id={0} title="{1}" url={2}>'.format(self.id, utf8(self.title), self.url)
 
 
-def commentFilterFn(tag):
+def _commentFilterFn(tag):
     """Returns true only if the tag is a good candidate for an HN comment/discussion link."""
     if not tag.has_attr('href') or not tag.attrs['href'].startswith('item?id='):
         return False
@@ -59,7 +53,7 @@ class Snapshot(object):
                 commentNode = node.parent.parent.next_sibling
                 #print unicode(node)
                 #print node.get_text()
-                comments = commentNode.find(commentFilterFn)
+                comments = commentNode.find(_commentFilterFn)
                 if comments:
                     itemId = int(comments.attrs.get('href', '').replace('item?id=', ''))
                     numComments = int(integerRe.sub('', comments.get_text())) if comments.get_text() != 'discuss' else 0
