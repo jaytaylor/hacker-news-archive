@@ -20,14 +20,15 @@ class ItemLog(object):
 
 class Item(object):
     """HN item."""
-    def __init__(self, id, title, url):
+    def __init__(self, id, title, url, user):
         self.id = id
         self.title = utf8(title)
         self.url = url
+        self.user = user
         self.log = []
 
     def __str__(self):
-        return '<Item id={0} title="{1}" url={2}>'.format(self.id, utf8(self.title), utf8(self.url))
+        return '<Item id={0} title="{1}" user={2} url={3}>'.format(self.id, utf8(self.title), self.user, utf8(self.url))
 
     def maxPoints(self):
         return max(map(lambda l: l.points, self.log))
@@ -63,11 +64,12 @@ class Snapshot(object):
                 if comments:
                     itemId = int(comments.attrs.get('href', '').replace('item?id=', ''))
                     numComments = int(integerRe.sub('', comments.get_text())) if comments.get_text() != 'discuss' else 0
+                    user = commentNode.select('td.subtext a')[0].get_text()
                     numPoints = int(integerRe.sub('', commentNode.select('td.subtext span')[0].get_text()))
                     nodeLink = node.parent.find('a')
                     url = nodeLink.attrs.get('href', '')
                     title = nodeLink.get_text()
-                    items.append(Item(itemId, title, url))
+                    items.append(Item(itemId, title, url, user))
                     items[-1].log.append(ItemLog(self.ts, numPoints, numComments))
                 #else:
                 #    print ':(',node.get_text(), node.parent.parent.next_sibling.get_text()
