@@ -3,7 +3,7 @@
 
 """Snapshot parser."""
 
-import subprocess
+import os, subprocess
 from bs4 import BeautifulSoup
 from lib.models import ItemLog, Item, Snapshot
 from lib.text import unixTimestamp, integerRe
@@ -12,15 +12,41 @@ try:
 except ImportError:
     import pickle
 
-out =  subprocess.check_output(['find', 'data', '-wholename', '*.html.orig']).strip()
-snapshots = []
-for filename in out.split('\n'):
-    with open(filename, 'r') as fh:
-        #print filename
-        snapshot = Snapshot(unixTimestamp(filename), fh.read())
+
+print 'starting data loading'
+
+if not os.path.exists('snapshots.pickle'):
+    def getCachedSnapshot(filename):
+        """Attempt to get pre-computed snapshot."""
+        pickleFilename = filename.replace('.html.orig', '.pickle')
+        if os.path.isfile(pickleFilename):
+            try:
+                with open(pickleFilename, 'rb') as pfh:
+                    return pickle.load(pfh)
+            except Exception, e:
+                print 'error: {0}'.format(e)
+        return None
+
+    out =  subprocess.check_output(['find', 'data', '-wholename', '*.html.orig']).strip()
+    snapshots = []
+    for filename in out.split('\n'):
+        snapshot = getCachedSnapshot(filename)
+        if snapshot is None:
+            with open(filename, 'r') as fh:
+                snapshot = Snapshot(unixTimestamp(filename), fh.read())
+                pickleFilename = filename.replace('.html.orig', '.pickle')
+                with open(pickleFilename, 'wb') as pfh:
+                    pickle.dump(snapshot, pfh)
+        print snapshot.ts
         snapshots.append(snapshot)
-#        break
-        #print map(lambda s: s.__str__(), snapshots[-1].items())
+
+    with open('snapshots.pickle', 'wb') as fh:
+        pickle.dump(snapshots, fh)
+else:
+    with open('snapshots.pickle', 'rb') as fh:
+        snapshots = pickle.load(fh)
+
+print 'finished reading data'
 
 items = {}
 for snapshot in snapshots:
@@ -29,9 +55,9 @@ for snapshot in snapshots:
         if item.id not in items:
             items[item.id] = item
         else:
-            # Just append the log.
+            # Merge the logs.
             items[item.id].log += item.log
-        
+
 with open('items.pickle', 'wb') as fh:
     pickle.dump(items, fh)
 

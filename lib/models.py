@@ -27,7 +27,13 @@ class Item(object):
         self.log = []
 
     def __str__(self):
-        return '<Item id={0} title="{1}" url={2}>'.format(self.id, utf8(self.title), self.url)
+        return '<Item id={0} title="{1}" url={2}>'.format(self.id, utf8(self.title), utf8(self.url))
+
+    def maxPoints(self):
+        return max(map(lambda l: l.points, self.log))
+
+    def maxComments(self):
+        return max(map(lambda l: l.comments, self.log))
 
 
 def _commentFilterFn(tag):
